@@ -17,8 +17,12 @@ public class Bullets extends Weapon {
     }
 
     @Override
-    public void move() {
-        y -= 10;
+    public void move(String weaponOrientation) {
+        if(weaponOrientation.equals("Up")) {
+            y -= 10;
+        } else {
+            x += 10;
+        }
     }
 
     @Override

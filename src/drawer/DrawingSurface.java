@@ -103,6 +103,14 @@ public class DrawingSurface {
     public void drawPlayer(int x, int y, int width, int height, Color color) {
         graphics.setPaint(color);
         graphics.fillRect(x,y,width,height);
-        graphics.setPaint(Color.BLACK);
+
+    }
+
+    public void drawInvinciblePlayer(int x, int y, int width, int height) {
+
+        Random rand = new Random();
+        Color color = Color.getHSBColor(rand.nextFloat(),1,1);
+        drawPlayer(x, y, width, height, color);
+
     }
 }

@@ -1,7 +1,5 @@
 import drawer.DrawingSurface;
-import enemyobjects.BallEnemy;
-import enemyobjects.RectEnemy;
-import enemyobjects.EnemyShape;
+import enemyobjects.*;
 import playerobject.Player;
 import weapons.Weapon;
 import powerupobjects.PowerUp;
@@ -15,6 +13,7 @@ import java.util.*;
 import java.util.List;
 public class Game {
 
+    int bossCount = 0;
     int rectEnemyCounter;
     boolean isDead = false;
     private List<PowerUp> powerUpList;
@@ -26,9 +25,13 @@ public class Game {
     int weaponCount;
     int enemiesKilled;
     int ballEnemyCounter;
-    boolean bossBattle = false;
+    boolean isBossPhase = false;
     int powerUpCount;
     int invincibleCounter;
+    BossDragonEnemy boss;
+    boolean isFirstPhase = true;
+    String weaponOrientation = "Up";
+
 
     //100counts == 1second
     public Game() {
@@ -42,93 +45,61 @@ public class Game {
     public void update(DrawingSurface drawingSurface, UserInput userInput) throws IOException {
 
 
-        //
         if(!isDead) {
 
-            if(bossBattle) {
+            bossCount++;
+            if(bossCount == 2000) {
+                boss = new BossDragonEnemy();
+                isBossPhase = true;
+                isFirstPhase = false;
+                weaponOrientation = "Side";
 
             }
 
+            if(player.isInvincibleFlag()) {
+                invincibleCounter++;
+            }
+            if(invincibleCounter == 1000) {
+                player.setInvincibleFlag(false);
+                invincibleCounter = 0;
+            }
 
+            if (weaponCount > 0) {
+                weaponCount--;
+            }
 
             powerUpCount++;
             if(powerUpCount == 1000) {
                 powerUpList.add(new InvincibleNecklace(rand.nextInt(screenSize.width), rand.nextInt(screenSize.height)));
             }
 
-
-
-            //weapon cool-down counter - 250ms
-            if (weaponCount > 0) {
-                weaponCount--;
-            }
-
-
-            //enemy spawning counter - every 150ms
-            rectEnemyCounter++;
-            ballEnemyCounter++;
-
-            if (rectEnemyCounter == 15) {
-                enemyList.add(new RectEnemy(rand.nextInt(screenSize.width), rand.nextInt(20) + 10, rand.nextInt(20) + 10, Color.RED));
-                rectEnemyCounter = 0;
-            }
-            if (ballEnemyCounter == 300) {
-
-                enemyList.add(new BallEnemy(rand.nextInt(screenSize.width), rand.nextInt(10), rand.nextInt(20) + 10, 5,5));
-                ballEnemyCounter = 0;
-
-            }
-
-
-
-
-            //Updating the x and y of all objects
-            for (Weapon weapon : weaponList) {
-                weapon.move();
-            }
-            for (EnemyShape enemyShape : enemyList) {
-                enemyShape.move(drawingSurface);
-            }
-
-
-            //key presses
-            keyPresses(userInput);
-
-
-
-            //collision detection
-            detectBorderCollision();
-            detectWeaponCollision();
-            detectPowerUpCollision();
-
-            if(player.isInvincibleFlag()) {
-                invincibleCounter++;
-            } else {
+            //first phase
+            if(isFirstPhase) {
+                startFirstPhase(drawingSurface);
                 isDead = isEnemyCollision();
             }
 
-            if(invincibleCounter == 1000) {
-                player.setInvincibleFlag(false);
-                invincibleCounter = 0;
+            if(isBossPhase) {
+                boss.move();
+                detectBossCollision();
+//                boss.shootFireball();
             }
+            for (Weapon weapon : weaponList) {
+                weapon.move(weaponOrientation);
+            }
+            keyPresses(userInput);
+
+            detectPlayerBorderCollision();
+            detectWeaponCollision();
+            detectPowerUpCollision();
 
             //stops canvas from drawing if deadFlag == true
             if(isDead) {
-                userInput.clear();
-                Object[] choices = {"Restart", "Quit"};
-                Object defaultChoice = choices[1];
-                int result = JOptionPane.showOptionDialog(null,"You lost","Game Over", JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,null,choices,defaultChoice);
-
-                if(result == 1) {
-                    System.exit(0);
-
-                } else {
-                    //Resets the whole game
-                    restartGame();
-                }
+                deadPhase(userInput);
             }
+
         }
-        //drawing
+
         drawAll(drawingSurface);
     }
 
@@ -148,7 +119,7 @@ public class Game {
         }
     }
 
-    public void detectBorderCollision() {
+    public void detectPlayerBorderCollision() {
         enemyList.removeIf(enemy -> enemy instanceof RectEnemy && enemy.getLowerBound() >= screenSize.height);
         weaponList.removeIf(weapon -> weapon.getUpperBound() <= 0);
         if(player.getLowerBound() > screenSize.height - 100) {
@@ -177,23 +148,40 @@ public class Game {
         }
     }
 
+    public void detectBossCollision() {
+        for(FullDragon dragonPart : boss.getDragon()) {
+            if(player.getLeftBound() <= dragonPart.getRightBound() &&
+                    player.getRightBound() >= dragonPart.getLeftBound() &&
+                    player.getLowerBound() >= dragonPart.getUpperBound() &&
+                    player.getUpperBound() <= dragonPart.getLowerBound()) {
+
+                isDead = true;
+            }
+        }
+    }
+
     public boolean isEnemyCollision() {
         //Detect the collision of enemy and player
 
+        if(!player.isInvincibleFlag()) {
 
-        for(EnemyShape enemy : enemyList) {
-            if (((enemy.getLowerBound() > player.getUpperBound() && enemy.getLowerBound() < player.getLowerBound())  ||
-                 (enemy.getUpperBound() < player.getLowerBound() && enemy.getUpperBound() > player.getUpperBound())) &&
-                    ((enemy.getRightBound() > player.getLeftBound()  && enemy.getRightBound() < player.getRightBound()) ||
-                    (enemy.getLeftBound() < player.getRightBound() && enemy.getLeftBound() > player.getLeftBound()))) {
+            for (EnemyShape enemy : enemyList) {
+                if (((enemy.getLowerBound() > player.getUpperBound() && enemy.getLowerBound() < player.getLowerBound()) ||
+                        (enemy.getUpperBound() < player.getLowerBound() && enemy.getUpperBound() > player.getUpperBound())) &&
+                        ((enemy.getRightBound() > player.getLeftBound() && enemy.getRightBound() < player.getRightBound()) ||
+                                (enemy.getLeftBound() < player.getRightBound() && enemy.getLeftBound() > player.getLeftBound()))) {
 
-                return true;
+                    return true;
+                }
+
             }
+
         }
         return false;
     }
 
     private void restartGame() {
+
         enemiesKilled = 0;
         rectEnemyCounter = 0;
         weaponCount = 0;
@@ -201,6 +189,11 @@ public class Game {
         weaponList.clear();
         player = new Player(screenSize.width, screenSize.height);
         isDead = false;
+        powerUpCount = 0;
+        isBossPhase = false;
+        isFirstPhase = true;
+        bossCount = 0;
+        weaponOrientation = "Up";
 
     }
 
@@ -238,18 +231,60 @@ public class Game {
 
         drawingSurface.drawString("Kill Counter: " + enemiesKilled, screenSize.width/2, screenSize.height/20);
         player.drawPlayer(drawingSurface);
-        for(PowerUp powerUp : powerUpList) {
+
+        if(isFirstPhase) {
+            for (EnemyShape enemyShape : enemyList) {
+                enemyShape.draw(drawingSurface);
+            }
+        }
+
+        for (PowerUp powerUp : powerUpList) {
             powerUp.draw(drawingSurface);
         }
-        for(Weapon weapon : weaponList) {
+
+        for (Weapon weapon : weaponList) {
             weapon.draw(drawingSurface);
         }
-        for(EnemyShape enemyShape : enemyList) {
-            enemyShape.draw(drawingSurface);
+
+        if(isBossPhase) {
+            boss.draw(drawingSurface);
         }
 
     }
 
+    private void deadPhase(UserInput userInput) {
+        userInput.clear();
+        Object[] choices = {"Restart", "Quit"};
+        Object defaultChoice = choices[1];
+        int result = JOptionPane.showOptionDialog(null,"You lost","Game Over", JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,null,choices,defaultChoice);
+
+        if(result == 1) {
+            System.exit(0);
+
+        } else {
+            //Resets the whole game
+            restartGame();
+        }
+    }
+
+    private void startFirstPhase(DrawingSurface drawingSurface) {
+        rectEnemyCounter++;
+        ballEnemyCounter++;
+        if (rectEnemyCounter == 15) {
+            enemyList.add(new RectEnemy(rand.nextInt(screenSize.width), rand.nextInt(20) + 10, rand.nextInt(20) + 10, Color.RED));
+            rectEnemyCounter = 0;
+        }
+        if (ballEnemyCounter == 300) {
+            enemyList.add(new BallEnemy(rand.nextInt(screenSize.width), rand.nextInt(10), rand.nextInt(20) + 10, 5, 5));
+            ballEnemyCounter = 0;
+        }
+
+        for (EnemyShape enemyShape : enemyList) {
+            enemyShape.move();
+        }
+
+
+    }
 
 
 }

@@ -15,7 +15,6 @@ public class Player {
     private int ySpeed;
     private int xSpeed;
     private boolean invincibleFlag;
-
     private Color color;
 
     public Player(int screenWidth, int screenHeight) {
@@ -44,7 +43,11 @@ public class Player {
     }
 
     public void drawPlayer(DrawingSurface drawingSurface) {
-        drawingSurface.drawPlayer(x,y,width,height,color);
+        if(invincibleFlag) {
+            drawingSurface.drawInvinciblePlayer(x,y,width,height);
+        } else {
+            drawingSurface.drawPlayer(x,y,width,height,color);
+        }
     }
 
     public Bullets shoot() {
@@ -131,6 +134,8 @@ public class Player {
         this.color = color;
     }
 
+    private void changeToRainbowColor() {
 
+    }
 
 }

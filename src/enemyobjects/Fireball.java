@@ -6,28 +6,34 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
-public class ImageEnemy extends EnemyShape{
+public class Fireball extends EnemyShape{
 
-    private int x;
-    private int y;
-    private BufferedImage image;
+    int x;
+    int y;
+    int width;
+    int height;
+    BufferedImage image;
 
-    public ImageEnemy(String filePath, int x, int y) throws IOException {
-        Random rand = new Random();
-        image =  ImageIO.read(new File(filePath));
+    public Fireball(int x, int y) throws IOException {
 
+        image = ImageIO.read(new File("DragonSprite/fireball.png"));
+        width = image.getWidth();
+        height = image.getHeight();
+        this.x = x;
+        this.y = y;
     }
+
     @Override
     public void move() {
-        x++;
-        y++;
+        x -= 10;
     }
 
     @Override
     public void draw(DrawingSurface drawingSurface) {
-        drawingSurface.drawImage(image,x,y);
+
+        drawingSurface.drawImage(image, x, y);
+
     }
 
     @Override

@@ -11,6 +11,7 @@ public class BallEnemy extends EnemyShape {
     int x;
     int xVelocity;
     int yVelocity;
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
     public BallEnemy(int x, int y, int radius, int xVelocity, int yVelocity) {
 
@@ -24,14 +25,10 @@ public class BallEnemy extends EnemyShape {
 
 
     @Override
-    public void move(DrawingSurface drawingSurface) {
-
-
+    public void move() {
         x += xVelocity;
         y += yVelocity;
-        detectBorderCollision(drawingSurface);
-
-
+        detectBorderCollision();
 
 
     }
@@ -61,11 +58,11 @@ public class BallEnemy extends EnemyShape {
         return x;
     }
 
-    private void detectBorderCollision(DrawingSurface drawingSurface) {
+    private void detectBorderCollision() {
 
 
-        if(getRightBound() > drawingSurface.getWidth()) {
-            x = drawingSurface.getWidth() - 2*radius;
+        if(getRightBound() > screenSize.width) {
+            x = screenSize.width - 2*radius;
             xVelocity *= -1;
         }
 
@@ -74,7 +71,7 @@ public class BallEnemy extends EnemyShape {
             xVelocity *= -1;
         }
 
-        if(y < 0 || y + 2*radius > drawingSurface.getHeight()) {
+        if(y < 0 || y + 2*radius > screenSize.height) {
             yVelocity *= -1;
         }
 

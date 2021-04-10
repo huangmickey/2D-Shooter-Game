@@ -21,7 +21,7 @@ public class InvincibleNecklace extends PowerUp {
     public InvincibleNecklace(int x, int y) throws IOException {
         this.x = x;
         this.y = y;
-        this.image = ImageIO.read(new File("src/RPGIconsExtra/icon_23.png"));
+        this.image = ImageIO.read(new File("RPGIconsExtra/icon_23.png"));
         this.height = image.getHeight();
         this.width = image.getWidth();
     }

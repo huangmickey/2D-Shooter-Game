@@ -30,7 +30,7 @@ public class RectEnemy extends EnemyShape {
 
 
     @Override
-    public void move(DrawingSurface drawingSurface) {
+    public void move() {
         Random rand = new Random();
         y+=rand.nextInt(5) + 1;
 
