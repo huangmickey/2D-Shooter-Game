@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class Canvas extends JPanel implements KeyListener {
 
-    private static final int UPDATE_DELAY = 10;
+    private static final int UPDATE_DELAY = 1;
 
     private final Game program;
     private final UserInput userInput;

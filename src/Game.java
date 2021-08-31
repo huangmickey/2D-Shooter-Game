@@ -218,7 +218,7 @@ public class Game {
         if (userInput.isSpacePressed()) {
             if (weaponCount <= 0) {
                 weaponList.add(player.shoot());
-                weaponCount = 25;
+                weaponCount = 10;
             }
         }
 
@@ -282,9 +282,5 @@ public class Game {
         for (EnemyShape enemyShape : enemyList) {
             enemyShape.move();
         }
-
-
     }
-
-
 }
